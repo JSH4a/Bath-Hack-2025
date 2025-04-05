@@ -1,7 +1,6 @@
 <template>
     <div class="menu-category" @mouseover="startLoading" @mouseleave="resetLoading">
-      <img class="category-image" :src="imageSrc" alt="Category Image" />
-      <span class="category-name">{{ category.name }}</span>
+      <span class="category-name">{{ text }}</span>
   
       <!-- Loading Bar -->
       <div class="loading-bar">
@@ -13,8 +12,7 @@
   <script>
   export default {
     props: {
-      category: Object,
-      imageSrc: String
+      text: String,
     },
     data() {
       return {
@@ -59,7 +57,6 @@
     margin-bottom: 15px;
     cursor: pointer;
     position: relative;
-    height: 100px;
   }
   
   .category-image {

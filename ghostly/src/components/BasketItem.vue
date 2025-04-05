@@ -1,7 +1,6 @@
 <template>
     <div class="menu-category" @mouseover="startLoading" @mouseleave="resetLoading">
-      <img class="category-image" :src="imageSrc" alt="Category Image" />
-      <span class="category-name">{{ category.name }}</span>
+      <span class="category-name">{{ name }} - £{{ price }}</span>
   
       <!-- Loading Bar -->
       <div class="loading-bar">
@@ -13,8 +12,8 @@
   <script>
   export default {
     props: {
-      category: Object,
-      imageSrc: String
+      name: String,
+      price: Number,
     },
     data() {
       return {
@@ -54,7 +53,7 @@
     display: flex;
     align-items: center;
     padding: 20px;
-    background-color: #f5f5f5; /* Light grey background */
+    background-color: #f1ba00; /* Light grey background */
     border-radius: 8px;
     margin-bottom: 15px;
     cursor: pointer;
@@ -89,7 +88,7 @@
   
   .loading-progress {
     height: 100%;
-    background-color: #DA291C; /* Green loading bar */
+    background-color: #4caf50; /* Green loading bar */
     transition: width 0.1s linear;
   }
   </style>
