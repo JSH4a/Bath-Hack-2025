@@ -1,6 +1,6 @@
 <template>
     <div class="menu-category" @mouseover="startLoading" @mouseleave="resetLoading">
-      <span class="category-name">Checkout</span>
+      <span class="category-name">Checkout (£{{ (price) }})</span>
   
       <!-- Loading Bar -->
       <div class="loading-bar">
@@ -13,7 +13,8 @@
   export default {
     props: {
       category: Object,
-      imageSrc: String
+      imageSrc: String,
+      price: Number,
     },
     data() {
       return {
