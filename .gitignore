@@ -1,0 +1,41 @@
+# Node.js dependencies
+/node_modules/
+
+# Build output
+/dist/
+/vite/
+
+# IDEs and editors
+/.idea/
+/.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dependency directories
+/pnpm-lock.yaml
+/package-lock.json
+/yarn.lock
+
+# Vite's local dev server cache
+/.vite/
+
+# TypeScript
+*.tsbuildinfo
+
+# Tests (if you're using any testing frameworks)
+coverage/
+
+# Optional directory for Vue DevTools or other tools
+/.vuepress/dist/
