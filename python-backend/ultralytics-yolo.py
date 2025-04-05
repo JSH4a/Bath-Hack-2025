@@ -23,11 +23,14 @@ while True:
         fingers_tensor = result.keypoints.xyn.cpu()[0]
         if len(fingers_tensor) == 0:
             continue
-        mean_fingertip = np.mean([fingers_tensor[8], fingers_tensor[12], fingers_tensor[16]], axis=0)
+        fingertips = [fingers_tensor[i] for i in [8, 12, 16] if fingers_tensor[i][1] > 0]
+        if not fingertips:
+            continue
+        mean_fingertip = np.mean(fingertips, axis=0)
 
         # Scale the mean_fingertip position to the monitor size (1920x1080)
-        screen_x = int((1-mean_fingertip[0]) * 1920)
-        screen_y = int(mean_fingertip[1] * 1080)
+        screen_x = int((1-mean_fingertip[0]) * 1080)
+        screen_y = int(mean_fingertip[1] * 1920)
 
         # Move the mouse cursor to the scaled position
         print(screen_x, screen_y)
