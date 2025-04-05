@@ -1,9 +1,10 @@
 from eyeGestures.utils import VideoCapture
 from eyeGestures import EyeGestures_v3
+import os
 
 # Initialize gesture engine and video capture
 gestures = EyeGestures_v3()
-cap = VideoCapture(2)
+cap = VideoCapture(0)
 calibrate = True
 screen_width = 1080
 screen_height= 1920
@@ -23,3 +24,4 @@ while True:
     saccades = event.saccades # saccadess movement detector
     # calibration_radius: radius for data collection during calibration
     print(event.point)
+    os.system(f'sudo -S ydotool mousemove -a {cursor_x} {1920-cursor_y}')
