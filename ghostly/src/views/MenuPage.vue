@@ -19,7 +19,11 @@
       <!-- Displaying the items selected in the order -->
       <ul>
         <li v-for="item in orderList" :key="item.id">
-          {{ item.name }} - £{{ item.price.toFixed(2) }} per item
+          <BasketItem 
+            :name="item.name" 
+            :price="item.price" 
+            @click="removeItem(item)"
+          />
         </li>
       </ul>
       <!-- Checkout button displaying total price -->
@@ -54,6 +58,7 @@
   import CardComponent from '../components/CardComponent.vue';
   import MenuItem from '../components/MenuItem.vue';
   import CheckoutItem from '../components/CheckoutItem.vue';
+  import BasketItem from '../components/BasketItem.vue';
 
   export default {
     components: {
@@ -61,6 +66,7 @@
       CardComponent,
       CheckoutItem,
       MenuItem,
+      BasketItem,
     },
     data() {
       return {
@@ -100,6 +106,10 @@
       onCardClick(item) {
         // Add the item to the order list
         this.orderList.push(item);
+      },
+      removeItem(item) {
+        // Add the item to the order list
+        this.orderList.pop(item);
       },
       redirectToConfirmationPage() {
         // Redirect to confirmation page

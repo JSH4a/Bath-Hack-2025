@@ -59,6 +59,7 @@
     margin-bottom: 15px;
     cursor: pointer;
     position: relative;
+    height: 100px;
   }
   
   .category-image {
@@ -89,7 +90,7 @@
   
   .loading-progress {
     height: 100%;
-    background-color: #4caf50; /* Green loading bar */
+    background-color: #DA291C; /* Green loading bar */
     transition: width 0.1s linear;
   }
   </style>

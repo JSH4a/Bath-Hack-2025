@@ -96,7 +96,7 @@
   
   .loading-progress {
     height: 100%;
-    background-color: #4caf50; /* Green color for the loading bar */
+    background-color: #DA291C; /* Green color for the loading bar */
     transition: width 0.1s linear;
   }
   </style>
