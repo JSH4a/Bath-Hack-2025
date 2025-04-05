@@ -122,7 +122,7 @@
       },
       removeItem(item) {
         // Add the item to the order list
-        this.orderList.pop(item);
+        this.orderList = this.orderList.filter(i => i != item);
       },
       redirectToConfirmationPage() {
         // Redirect to confirmation page
