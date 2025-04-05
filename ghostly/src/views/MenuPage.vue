@@ -51,17 +51,17 @@
   data() {
     return {
       categories: [
-        { id: 1, name: 'Burgers', image: '/src/assets/burger-icon.png' },
-        { id: 2, name: 'Drinks', image: '/src/assets/drink-icon.png' },
-        { id: 3, name: 'Sides', image: '/src/assets/sides-icon.png' },
-        { id: 4, name: 'Desserts', image: '/src/assets/dessert-icon.png' }
+        { id: 1, name: 'Burgers', image: '/src/assets/food/cheeseburger.png' },
+        { id: 2, name: 'Drinks', image: '/src/assets/food/coke.webp' },
+        { id: 3, name: 'Sides', image: '/src/assets/food/fries.png' },
+        { id: 4, name: 'Desserts', image: '/src/assets/food/apple-pie.png' }
       ],
       items: [
         { id: 1, name: 'Cheeseburger', categoryId: 1, image: '/src/assets/food/cheeseburger.png' },
         { id: 2, name: 'Big Mac', categoryId: 1, image: '/src/assets/food/big-mac.png' },
         { id: 3, name: 'Fries', categoryId: 3, image: '/src/assets/food/fries.png' },
-        { id: 4, name: 'Coke', categoryId: 2, image: '/src/assets/food/coke.png' },
-        { id: 5, name: 'Apple Pie', categoryId: 4, image: '/src/assets/food/applepie.png' },
+        { id: 4, name: 'Coke', categoryId: 2, image: '/src/assets/food/coke.webp' },
+        { id: 5, name: 'Apple Pie', categoryId: 4, image: '/src/assets/food/apple-pie.png' },
         // Add more items here...
       ],
       selectedCategory: null
