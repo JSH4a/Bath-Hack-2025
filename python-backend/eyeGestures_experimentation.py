@@ -3,10 +3,10 @@ from eyeGestures import EyeGestures_v3
 
 # Initialize gesture engine and video capture
 gestures = EyeGestures_v3()
-cap = VideoCapture(1)
+cap = VideoCapture(2)
 calibrate = True
-screen_width = 1920
-screen_height= 1080
+screen_width = 1080
+screen_height= 1920
 
 # Process each frame
 while True:

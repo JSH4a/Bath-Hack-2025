@@ -2,6 +2,7 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 import time
+import os
 
 model = YOLO('best.pt')
 
@@ -32,9 +33,9 @@ while True:
         screen_x = int((1-mean_fingertip[0]) * 1080)
         screen_y = int(mean_fingertip[1] * 1920)
 
-        # Move the mouse cursor to the scaled position
+        # Move the mouse cursor to the scaled position using ydotool
+        os.system(f'echo <SUDO_PASSWORD> | sudo -S ydotool mousemove -a {screen_x} {screen_y}')
         print(screen_x, screen_y)
-
     # Display the frame
     cv2.imshow('YOLO Inference', frame)
 
