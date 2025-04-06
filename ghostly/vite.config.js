@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   resolve: {
+    base: '/',
     alias: {
       '@': '/src' // Ensure '@' points to the 'src' folder
     }

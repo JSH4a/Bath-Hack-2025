@@ -10,6 +10,8 @@
       padding: 0;
       overflow: hidden;
       background-color: black;
+      font-family: Arial, sans-serif;
+      color: white;
     }
 
     canvas {
@@ -22,13 +24,62 @@
     #ghostImage, #enemyImage, #wizardImage {
       display: none;
     }
+
+    /* Start menu styles */
+    #startMenu {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      font-size: 24px;
+    }
+
+    #startMenu button {
+      font-size: 20px;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+
+    #startMenu button:hover {
+      background-color: #45a049;
+    }
+
+    #description {
+      font-size: 18px;
+      max-width: 400px;
+      margin: 20px auto;
+      display: none;
+    }
+
+    #toggleDescription {
+      font-size: 18px;
+      color: #4CAF50;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <div id="startMenu">
+    <h1>Welcome to the Chase Game</h1>
+    <button id="startButton">Start Game</button>
+    <div id="toggleDescription">Read about the game</div>
+    <p id="description">
+      In this game, you control a ghost that follows the cursor or tap location. 
+      You need to avoid enemies and wizards while trying to increase your score. 
+      Enemies will flee from the ghost, and wizards will chase it. The game ends if you reach a certain score or get caught by a wizard.
+    </p>
+  </div>
+  
   <canvas id="gameCanvas"></canvas>
   <img id="ghostImage" src="ghost.png" alt="Ghost" />
   <img id="enemyImage" src="Run.png" alt="Enemy" />
   <img id="wizardImage" src="RunWizard.png" alt="Wizard" />
+  
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -45,33 +96,59 @@
       y: 0,
       speed: 4,
       width: 50,
-      height: 50
+      height: 50,
+      targetX: 0,  // Target X for ghost animation
+      targetY: 0   // Target Y for ghost animation
     };
 
     let prevGhost = { x: ghost.x, y: ghost.y };
     let ghostVelocity = { x: 0, y: 0 };
 
-    let targetX = ghost.x;
-    let targetY = ghost.y;
-
     let enemies = [];
     let wizards = [];
     let score = 0;
     let gameOver = false;
+    let gameStarted = false;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Add an event listener for touch or click (tap on mobile)
-    canvas.addEventListener('click', (e) => {
-      const touch = e.touches[0]; // Get the first touch
-      ghost.targetX = touch.clientX - ghost.width / 2;
-      ghost.targetY = touch.clientY - ghost.height / 2;
+    // Start button click event to start the game
+    document.getElementById('startButton').addEventListener('click', startGame);
+
+    // Toggle description visibility
+    document.getElementById('toggleDescription').addEventListener('click', () => {
+      const description = document.getElementById('description');
+      if (description.style.display === 'none') {
+        description.style.display = 'block';
+        document.getElementById('toggleDescription').innerText = 'Hide the description';
+      } else {
+        description.style.display = 'none';
+        document.getElementById('toggleDescription').innerText = 'Read about the game';
+      }
     });
 
+    function startGame() {
+      document.getElementById('startMenu').style.display = 'none'; // Hide the start menu
+      gameStarted = true;
+      update(); // Start the game loop
+    }
+
+    // Follow the cursor
     document.addEventListener('mousemove', (e) => {
-      targetX = e.clientX - ghost.width / 2;
-      targetY = e.clientY - ghost.height / 2;
+      if (gameStarted) {
+        ghost.targetX = e.clientX - ghost.width / 2;
+        ghost.targetY = e.clientY - ghost.height / 2;
+      }
+    });
+
+    // Animate ghost to touch position
+    document.addEventListener('touchstart', (e) => {
+      if (gameStarted) {
+        const touch = e.touches[0]; // Get the first touch
+        ghost.targetX = touch.clientX - ghost.width / 2;
+        ghost.targetY = touch.clientY - ghost.height / 2;
+      }
     });
 
     const enemySprite = {
@@ -79,7 +156,7 @@
       y: Math.random() * canvas.height,
       width: 128,
       height: 128,
-      baseSpeed: Math.random() * 2.5 + 1.5,
+      baseSpeed: Math.random() * 1.5 + 1.5,
       frame: 0,
       totalFrames: 8,
       angle: 0,
@@ -120,28 +197,9 @@
       wizards.push(wizard);
     }
 
-    // Function to animate the ghost smoothly to the target
-    function animateGhostToTarget() {
-      const dx = targetX - ghost.x;
-      const dy = targetY - ghost.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance > ghost.speed) {
-        // Normalize the direction vector
-        const directionX = dx / distance;
-        const directionY = dy / distance;
-
-        // Move the ghost in the calculated direction
-        ghost.x += directionX * ghost.speed;
-        ghost.y += directionY * ghost.speed;
-      } else {
-        // If close enough, set ghost to exact target position
-        ghost.x = targetX;
-        ghost.y = targetY;
-      }
-    }
-
     function update() {
+      if (!gameStarted) return;
+
       if (gameOver) {
         ctx.fillStyle = 'white';
         ctx.font = '48px Arial';
@@ -149,8 +207,16 @@
         return;
       }
 
-      // Animate the ghost movement
-      animateGhostToTarget();
+      // Ghost animation towards target position (tap location)
+      const dx = ghost.targetX - ghost.x;
+      const dy = ghost.targetY - ghost.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distance > 1) {
+        const angle = Math.atan2(dy, dx);
+        ghost.x += Math.cos(angle) * ghost.speed;
+        ghost.y += Math.sin(angle) * ghost.speed;
+      }
 
       // Update ghost velocity
       ghostVelocity.x = ghost.x - prevGhost.x;
@@ -245,9 +311,63 @@
         }
       });
 
-      // Randomly spawn enemies
+      // Update and draw wizards (always move towards the ghost)
+      wizards.forEach((wizard, index) => {
+        const dx = ghost.x - wizard.x;
+        const dy = ghost.y - wizard.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate the angle towards the ghost
+        wizard.angle = Math.atan2(dy, dx);
+
+        const ghostDir = { x: ghost.x - wizard.x, y: ghost.y - wizard.y }; // Move towards ghost
+        const mag = Math.sqrt(ghostDir.x ** 2 + ghostDir.y ** 2) || 1;
+        ghostDir.x /= mag;
+        ghostDir.y /= mag;
+
+        wizard.x += ghostDir.x * wizard.baseSpeed;
+        wizard.y += ghostDir.y * wizard.baseSpeed;
+
+        if (distance <= circleRadius) {
+          wizard.updateFrame();
+          ctx.save();
+          ctx.translate(wizard.x + wizard.width / 2, wizard.y + wizard.height / 2); // Move to the center of the wizard
+          ctx.rotate(wizard.angle); // Rotate the wizard towards the ghost
+          ctx.drawImage(
+            wizardImage,
+            wizard.frame * wizard.width, 0,
+            wizard.width, wizard.height,
+            -wizard.width / 2, -wizard.height / 2,
+            wizard.width, wizard.height
+          );
+          ctx.restore();
+        }
+
+        if (
+          wizard.x > canvas.width || wizard.x < -wizard.width ||
+          wizard.y > canvas.height || wizard.y < -wizard.height
+        ) {
+          wizards.splice(index, 1);
+        }
+
+        if (
+          ghost.x < wizard.x + wizard.width &&
+          ghost.x + ghost.width > wizard.x &&
+          ghost.y < wizard.y + wizard.height &&
+          ghost.y + ghost.height > wizard.y
+        ) {
+          score--; // Subtract from score when wizard collides
+          wizards.splice(index, 1);
+        }
+      });
+
+      // Randomly spawn enemies and wizards
       if (Math.random() < 0.01) {
         spawnEnemy();
+      }
+
+      if (Math.random() < 0.005) { // Less frequent spawn rate for wizard
+        spawnWizard();
       }
 
       ctx.fillStyle = 'white';
