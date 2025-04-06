@@ -1,6 +1,6 @@
 <template>
     <div class="menu-category" @mouseover="startLoading" @mouseleave="resetLoading">
-      <span class="category-name">Checkout (£{{ (price) }})</span>
+      <span class="category-name">Checkout (£{{ (price.toFixed(2)) }})</span>
   
       <!-- Loading Bar -->
       <div class="loading-bar">
