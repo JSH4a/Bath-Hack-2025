@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebGazer Cursor Control with Calibration</title>
+  <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+  <style>
+    .calibration-point {
+      width: 20px;
+      height: 20px;
+      background-color: red;
+      border-radius: 50%;
+      position: absolute;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>WebGazer Calibration for Cursor Control</h1>
+  <p>Click on each red dot to calibrate. After calibration, gaze will control the cursor.</p>
+  
+  <div id="calibrationPoints" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;"></div>
+  
+  <script>
+    let calibrationData = [];
+    const numPoints = 9; // 3x3 grid of calibration points
+    const calibrationPointsDiv = document.getElementById('calibrationPoints');
+    
+    // Create a 3x3 grid of calibration points
+    for (let i = 0; i < numPoints; i++) {
+      const point = document.createElement('div');
+      point.classList.add('calibration-point');
+      
+      const x = (i % 3) * (window.innerWidth / 3) + window.innerWidth / 6;
+      const y = Math.floor(i / 3) * (window.innerHeight / 3) + window.innerHeight / 6;
+
+      point.style.left = `${x}px`;
+      point.style.top = `${y}px`;
+
+      point.addEventListener('click', () => {
+        // Send the clicked calibration point to the server
+        fetch('http://localhost:5000/calibrate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ x, y })
+        });
+
+        point.style.backgroundColor = 'green'; // Change color as feedback
+        calibrationData.push({ x, y });
+        if (calibrationData.length === numPoints) {
+          startGazeTracking(); // Start gaze tracking after calibration
+        }
+      });
+
+      calibrationPointsDiv.appendChild(point);
+    }
+
+    // Start gaze tracking once calibration is complete
+    function startGazeTracking() {
+      webgazer.setGazeListener((data, elapsedTime) => {
+        if (data === null) return;
+
+        // Send gaze coordinates to the server
+        fetch('http://localhost:5000/gaze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ x: data.x, y: data.y })
+        });
+      }).begin();
+    }
+  </script>
+</body>
+</html>
