@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chase Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: none;
+    }
+
+    #ghostImage, #enemyImage {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <img id="ghostImage" src="ghost.png" alt="Ghost" />
+  <img id="enemyImage" src="Run.png" alt="Enemy" />
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const ghostImage = document.getElementById('ghostImage');
+    const enemyImage = document.getElementById('enemyImage');
+
+    const bgImage = new Image();
+    bgImage.src = 'terrace.png';
+
+    let ghost = {
+      x: 0,
+      y: 0,
+      speed: 4,
+      width: 50,
+      height: 50
+    };
+
+    let prevGhost = { x: ghost.x, y: ghost.y };
+    let ghostVelocity = { x: 0, y: 0 };
+
+    let enemies = [];
+    let score = 0;
+    let gameOver = false;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    document.addEventListener('mousemove', (e) => {
+      ghost.x = e.clientX - ghost.width / 2;
+      ghost.y = e.clientY - ghost.height / 2;
+    });
+
+    const enemySprite = {
+      x: -50,
+      y: Math.random() * canvas.height,
+      width: 128,
+      height: 128,
+      baseSpeed: Math.random() * 1.5 + 1.5,
+      frame: 0,
+      totalFrames: 8,
+      angle: 0,
+      rotationSpeed: 0.05,
+      updateFrame: function () {
+        this.frame = (this.frame + 1) % this.totalFrames;
+      }
+    };
+
+    function spawnEnemy() {
+      const enemy = Object.create(enemySprite);
+      enemy.x = -50;
+      enemy.y = Math.random() * canvas.height;
+      enemy.angle = 0;
+      enemy.rotationSpeed = 0.05 + Math.random() * 0.03;
+      enemy.baseSpeed = Math.random() * 1.5 + 1.5;
+      enemies.push(enemy);
+    }
+
+    function update() {
+      if (gameOver) {
+        ctx.fillStyle = 'white';
+        ctx.font = '48px Arial';
+        ctx.fillText('You Win!', canvas.width / 2 - 100, canvas.height / 2);
+        return;
+      }
+
+      // Update ghost velocity
+      ghostVelocity.x = ghost.x - prevGhost.x;
+      ghostVelocity.y = ghost.y - prevGhost.y;
+      prevGhost.x = ghost.x;
+      prevGhost.y = ghost.y;
+
+      // Draw background
+      ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+
+      const circleRadius = 300;
+      const fadeRadius = 250;
+      const centerX = ghost.x + ghost.width / 2;
+      const centerY = ghost.y + ghost.height / 2;
+
+      // Spotlight mask
+      const gradient = ctx.createRadialGradient(centerX, centerY, fadeRadius, centerX, centerY, circleRadius);
+      gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 1)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw ghost with glow
+      ctx.shadowColor = 'white';
+      ctx.shadowBlur = 15;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.drawImage(ghostImage, ghost.x, ghost.y, ghost.width, ghost.height);
+      ctx.shadowColor = 'transparent';
+
+      // Draw and update enemies
+      enemies.forEach((enemy, index) => {
+        const enemyCenterX = enemy.x + enemy.width / 2;
+        const enemyCenterY = enemy.y + enemy.height / 2;
+        const dx = enemyCenterX - centerX;
+        const dy = enemyCenterY - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        const ghostDir = { x: ghostVelocity.x, y: ghostVelocity.y };
+        const mag = Math.sqrt(ghostDir.x ** 2 + ghostDir.y ** 2) || 1;
+        ghostDir.x /= mag;
+        ghostDir.y /= mag;
+
+        const fleeDistance = 200;
+        let speedBoost = 0;
+
+        if (distance <= fleeDistance) {
+          speedBoost = 3 * (1 - distance / fleeDistance); // up to +3 speed
+          const fleeSpeed = enemy.baseSpeed + speedBoost;
+
+          enemy.x += -ghostDir.x * fleeSpeed;
+          enemy.y += -ghostDir.y * fleeSpeed;
+
+          enemy.angle += enemy.rotationSpeed;
+        } else {
+          enemy.x += enemy.baseSpeed;
+        }
+
+        if (distance <= circleRadius) {
+          enemy.updateFrame();
+          ctx.save();
+          ctx.translate(enemyCenterX, enemyCenterY);
+          ctx.rotate(enemy.angle);
+          ctx.drawImage(
+            enemyImage,
+            enemy.frame * enemy.width, 0,
+            enemy.width, enemy.height,
+            -enemy.width / 2, -enemy.height / 2,
+            enemy.width, enemy.height
+          );
+          ctx.restore();
+        }
+
+        if (
+          enemy.x > canvas.width || enemy.x < -enemy.width ||
+          enemy.y > canvas.height || enemy.y < -enemy.height
+        ) {
+          enemies.splice(index, 1);
+        }
+
+        if (
+          ghost.x < enemy.x + enemy.width &&
+          ghost.x + ghost.width > enemy.x &&
+          ghost.y < enemy.y + enemy.height &&
+          ghost.y + ghost.height > enemy.y
+        ) {
+          score++;
+          enemies.splice(index, 1);
+          if (score >= 5) {
+            gameOver = true;
+          }
+        }
+      });
+
+      if (Math.random() < 0.01) {
+        spawnEnemy();
+      }
+
+      ctx.fillStyle = 'white';
+      ctx.font = '24px Arial';
+      ctx.fillText('Score: ' + score, 20, 30);
+
+      requestAnimationFrame(update);
+    }
+
+    bgImage.onload = () => {
+      update();
+    };
+  </script>
+</body>
+</html>
