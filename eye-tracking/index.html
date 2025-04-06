@@ -71,6 +71,27 @@
         });
       }).begin();
     }
+
+    webgazer.showVideo(true)
+
+    window.onload = async function () {
+  // Start the WebGazer tracking system
+  await webgazer.setGazeListener((data, elapsedTime) => {
+    if (data == null) return;
+    // Send gaze coordinates to the server
+    fetch('http://localhost:5000/gaze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        x: data.x,
+        y: data.y
+      })
+    });
+  }).begin();  // This starts WebGazer.js and accesses the webcam
+};
+
   </script>
 </body>
 </html>
