@@ -1,5 +1,0 @@
-opencv
-mediapipe
-numpy
-websockets
-asyncio
