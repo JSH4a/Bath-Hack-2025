@@ -19,7 +19,7 @@
       cursor: none;
     }
 
-    #ghostImage, #enemyImage {
+    #ghostImage, #enemyImage, #wizardImage {
       display: none;
     }
   </style>
@@ -28,12 +28,14 @@
   <canvas id="gameCanvas"></canvas>
   <img id="ghostImage" src="ghost.png" alt="Ghost" />
   <img id="enemyImage" src="Run.png" alt="Enemy" />
+  <img id="wizardImage" src="RunWizard.png" alt="Wizard" />
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
     const ghostImage = document.getElementById('ghostImage');
     const enemyImage = document.getElementById('enemyImage');
+    const wizardImage = document.getElementById('wizardImage');
 
     const bgImage = new Image();
     bgImage.src = 'terrace.png';
@@ -49,19 +51,44 @@
     let prevGhost = { x: ghost.x, y: ghost.y };
     let ghostVelocity = { x: 0, y: 0 };
 
+    let targetX = ghost.x;
+    let targetY = ghost.y;
+
     let enemies = [];
+    let wizards = [];
     let score = 0;
     let gameOver = false;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    // Add an event listener for touch or click (tap on mobile)
+    canvas.addEventListener('click', (e) => {
+      const touch = e.touches[0]; // Get the first touch
+      ghost.targetX = touch.clientX - ghost.width / 2;
+      ghost.targetY = touch.clientY - ghost.height / 2;
+    });
+
     document.addEventListener('mousemove', (e) => {
-      ghost.x = e.clientX - ghost.width / 2;
-      ghost.y = e.clientY - ghost.height / 2;
+      targetX = e.clientX - ghost.width / 2;
+      targetY = e.clientY - ghost.height / 2;
     });
 
     const enemySprite = {
+      x: -50,
+      y: Math.random() * canvas.height,
+      width: 128,
+      height: 128,
+      baseSpeed: Math.random() * 2.5 + 1.5,
+      frame: 0,
+      totalFrames: 8,
+      angle: 0,
+      updateFrame: function () {
+        this.frame = (this.frame + 1) % this.totalFrames;
+      }
+    };
+
+    const wizardSprite = {
       x: -50,
       y: Math.random() * canvas.height,
       width: 128,
@@ -70,7 +97,6 @@
       frame: 0,
       totalFrames: 8,
       angle: 0,
-      rotationSpeed: 0.05,
       updateFrame: function () {
         this.frame = (this.frame + 1) % this.totalFrames;
       }
@@ -81,18 +107,50 @@
       enemy.x = -50;
       enemy.y = Math.random() * canvas.height;
       enemy.angle = 0;
-      enemy.rotationSpeed = 0.05 + Math.random() * 0.03;
       enemy.baseSpeed = Math.random() * 1.5 + 1.5;
       enemies.push(enemy);
+    }
+
+    function spawnWizard() {
+      const wizard = Object.create(wizardSprite);
+      wizard.x = -50;
+      wizard.y = Math.random() * canvas.height;
+      wizard.angle = 0;
+      wizard.baseSpeed = Math.random() * 1.5 + 1.5;
+      wizards.push(wizard);
+    }
+
+    // Function to animate the ghost smoothly to the target
+    function animateGhostToTarget() {
+      const dx = targetX - ghost.x;
+      const dy = targetY - ghost.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > ghost.speed) {
+        // Normalize the direction vector
+        const directionX = dx / distance;
+        const directionY = dy / distance;
+
+        // Move the ghost in the calculated direction
+        ghost.x += directionX * ghost.speed;
+        ghost.y += directionY * ghost.speed;
+      } else {
+        // If close enough, set ghost to exact target position
+        ghost.x = targetX;
+        ghost.y = targetY;
+      }
     }
 
     function update() {
       if (gameOver) {
         ctx.fillStyle = 'white';
         ctx.font = '48px Arial';
-        ctx.fillText('You Win!', canvas.width / 2 - 100, canvas.height / 2);
+        ctx.fillText('Game Over!', canvas.width / 2 - 120, canvas.height / 2);
         return;
       }
+
+      // Animate the ghost movement
+      animateGhostToTarget();
 
       // Update ghost velocity
       ghostVelocity.x = ghost.x - prevGhost.x;
@@ -123,39 +181,37 @@
       ctx.drawImage(ghostImage, ghost.x, ghost.y, ghost.width, ghost.height);
       ctx.shadowColor = 'transparent';
 
-      // Draw and update enemies
+      // Update and draw enemies (People) - Flee from ghost
       enemies.forEach((enemy, index) => {
-        const enemyCenterX = enemy.x + enemy.width / 2;
-        const enemyCenterY = enemy.y + enemy.height / 2;
-        const dx = enemyCenterX - centerX;
-        const dy = enemyCenterY - centerY;
+        const dx = ghost.x - enemy.x;
+        const dy = ghost.y - enemy.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        const ghostDir = { x: ghostVelocity.x, y: ghostVelocity.y };
-        const mag = Math.sqrt(ghostDir.x ** 2 + ghostDir.y ** 2) || 1;
-        ghostDir.x /= mag;
-        ghostDir.y /= mag;
+        // Calculate the angle towards the ghost
+        let enemyAngle = Math.atan2(dy, dx);
 
-        const fleeDistance = 200;
-        let speedBoost = 0;
+        // Rotate 180 degrees to make the enemy face the opposite direction
+        enemyAngle += Math.PI; // Add 180 degrees (Math.PI radians)
 
-        if (distance <= fleeDistance) {
-          speedBoost = 3 * (1 - distance / fleeDistance); // up to +3 speed
-          const fleeSpeed = enemy.baseSpeed + speedBoost;
+        // If the enemy is close to the ghost, flip direction and move away
+        if (distance <= 300) {  // Adjust the distance to your preference
+          const angleToGhost = Math.atan2(dy, dx);
+          const fleeDirectionX = -Math.cos(angleToGhost + Math.PI);  // Flip direction by adding Math.PI
+          const fleeDirectionY = -Math.sin(angleToGhost + Math.PI);  // Flip direction by adding Math.PI
 
-          enemy.x += -ghostDir.x * fleeSpeed;
-          enemy.y += -ghostDir.y * fleeSpeed;
-
-          enemy.angle += enemy.rotationSpeed;
+          const fleeSpeed = enemy.baseSpeed + 3 * (1 - distance / 200); // Flee faster as they get closer
+          enemy.x -= fleeDirectionX * fleeSpeed;
+          enemy.y -= fleeDirectionY * fleeSpeed;
         } else {
+          // Otherwise, move towards the general direction (same as before)
           enemy.x += enemy.baseSpeed;
         }
 
         if (distance <= circleRadius) {
           enemy.updateFrame();
           ctx.save();
-          ctx.translate(enemyCenterX, enemyCenterY);
-          ctx.rotate(enemy.angle);
+          ctx.translate(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2); // Move to the center of the enemy
+          ctx.rotate(enemyAngle); // Rotate the enemy to face the opposite direction of the ghost
           ctx.drawImage(
             enemyImage,
             enemy.frame * enemy.width, 0,
@@ -166,6 +222,7 @@
           ctx.restore();
         }
 
+        // Remove enemy if out of bounds
         if (
           enemy.x > canvas.width || enemy.x < -enemy.width ||
           enemy.y > canvas.height || enemy.y < -enemy.height
@@ -173,6 +230,7 @@
           enemies.splice(index, 1);
         }
 
+        // Handle collision with ghost (same as before)
         if (
           ghost.x < enemy.x + enemy.width &&
           ghost.x + ghost.width > enemy.x &&
@@ -187,6 +245,7 @@
         }
       });
 
+      // Randomly spawn enemies
       if (Math.random() < 0.01) {
         spawnEnemy();
       }
