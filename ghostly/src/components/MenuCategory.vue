@@ -31,7 +31,7 @@
         this.progress = 0;
         this.loadingInterval = setInterval(() => {
           if (this.progress < 100) {
-            this.progress += 15;
+            this.progress += 5;
           } else {
             clearInterval(this.loadingInterval); // Stop once progress reaches 100
             this.$emit("click"); // Emit click event after loading
